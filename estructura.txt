@@ -1,0 +1,90 @@
+📦 PulseForge
+ ┣ 📜 .gitignore
+ ┣ 📜 gitpush.py
+ ┣ 📜 README.md
+📂 .git  (contenido limitado)
+ ┃ 📂 hooks
+ ┃ 📂 info
+ ┃ 📂 logs
+ ┃ 📂 objects
+ ┃ 📂 refs
+📂 Backend
+ ┣ 📜 .env
+ ┣ 📜 requirements.txt
+ ┃ 📂 app
+ ┃  ┣ 📜 config.py
+ ┃  ┣ 📜 main.py
+ ┃  ┃ 📂 crud
+ ┃  ┃  ┣ 📜 campos_crud.py
+ ┃  ┃  ┣ 📜 comunero_crud.py
+ ┃  ┃  ┣ 📜 log_crud.py
+ ┃  ┃  ┣ 📜 usuario_crud.py
+ ┃  ┃ 📂 models
+ ┃  ┃  ┣ 📜 campos_formulario.py
+ ┃  ┃  ┣ 📜 comunero.py
+ ┃  ┃  ┣ 📜 log_auditoria.py
+ ┃  ┃  ┣ 📜 usuario.py
+ ┃  ┃ 📂 routers
+ ┃  ┃  ┣ 📜 auth.py
+ ┃  ┃  ┣ 📜 campos_formulario.py
+ ┃  ┃  ┣ 📜 comuneros.py
+ ┃  ┃  ┣ 📜 estadisticas.py
+ ┃  ┃  ┣ 📜 exportaciones.py
+ ┃  ┃ 📂 schemas
+ ┃  ┃  ┣ 📜 campos_formulario_schema.py
+ ┃  ┃  ┣ 📜 comunero_schema.py
+ ┃  ┃  ┣ 📜 log_schema.py
+ ┃  ┃  ┣ 📜 usuario_schema.py
+ ┃  ┃ 📂 utils
+ ┃  ┃  ┣ 📜 export_helper.py
+ ┃  ┃  ┣ 📜 security.py
+ ┃  ┃  ┣ 📜 validation.py
+📂 database
+ ┣ 📜 schema.sql
+ ┃ 📂 migrations
+ ┃ 📂 seeds
+📂 docs
+ ┣ 📜 api_documentation.md
+ ┣ 📜 arquitectura.md
+ ┣ 📜 guias_usuarios.md
+📂 Frontend
+ ┣ 📜 package.json
+ ┣ 📜 tsconfig.json
+ ┃ 📂 public
+ ┃  ┣ 📜 favicon.ico
+ ┃  ┣ 📜 index.html
+ ┃ 📂 src
+ ┃  ┣ 📜 App.tsx
+ ┃  ┣ 📜 main.tsx
+ ┃  ┃ 📂 components
+ ┃  ┃  ┣ 📜 Header.tsx
+ ┃  ┃  ┣ 📜 Sidebar.tsx
+ ┃  ┃  ┃ 📂 Configuracion
+ ┃  ┃  ┃  ┣ 📜 ComposForm.tsx
+ ┃  ┃  ┃  ┣ 📜 Usuarios.tsx
+ ┃  ┃  ┃ 📂 Estadisticas
+ ┃  ┃  ┃  ┣ 📜 Charts.tsx
+ ┃  ┃  ┃  ┣ 📜 HeatMap.tsx
+ ┃  ┃  ┃ 📂 Formulario
+ ┃  ┃  ┃  ┣ 📜 DynamicForm.tsx
+ ┃  ┃  ┃  ┣ 📜 FormField.tsx
+ ┃  ┃  ┃ 📂 Home
+ ┃  ┃  ┃  ┣ 📜 Dashboard.tsx
+ ┃  ┃  ┃  ┃ 📂 Widgets
+ ┃  ┃  ┃ 📂 Tabla
+ ┃  ┃  ┃  ┣ 📜 ComunerosTable.tsx
+ ┃  ┃ 📂 context
+ ┃  ┃  ┣ 📜 AuthContext.tsx
+ ┃  ┃  ┣ 📜 ConfigContext.tsx
+ ┃  ┃ 📂 routes
+ ┃  ┃  ┣ 📜 AppRouter.tsx
+ ┃  ┃ 📂 services
+ ┃  ┃  ┣ 📜 api.ts
+ ┃  ┃  ┣ 📜 authservice.ts
+ ┃  ┃ 📂 utils
+ ┃  ┃  ┣ 📜 formatters.ts
+ ┃  ┃  ┣ 📜 helpers.ts
+📂 scripts
+ ┣ 📜 setup_env.bat
+ ┣ 📜 start_backend.bat
+ ┣ 📜 start_frontend.bat
