@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Horario semanal</title>
+  <style>
+    /* ✅ Drop-in upgrade: más ancho, sin scroll horizontal, responsive real.
+   PÉGALO reemplazando tu <style> completo. */
+
+:root{
+  --bg:#0b1020;
+  --panel:#0f1730;
+  --card:#121c3b;
+  --line:rgba(255,255,255,.10);
+  --text:rgba(255,255,255,.92);
+  --muted:rgba(255,255,255,.68);
+  --accent:#6ee7ff;
+  --accent2:#a78bfa;
+  --good:#22c55e;
+  --warn:#f59e0b;
+  --radius:16px;
+  --shadow: 0 10px 30px rgba(0,0,0,.35);
+  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+
+  /* 🔥 nuevos: control de layout */
+  --max: 1400px;          /* antes 1200, por eso se veía angosto */
+  --gap: 14px;
+  --pad: clamp(14px, 2.2vw, 26px);
+}
+
+/* Base */
+*{ box-sizing:border-box; }
+html, body { height: 100%; }
+body{
+  margin:0;
+  font-family:var(--sans);
+  color:var(--text);
+  background:
+    radial-gradient(900px 500px at 15% 10%, rgba(110,231,255,.14), transparent 55%),
+    radial-gradient(900px 500px at 85% 15%, rgba(167,139,250,.14), transparent 55%),
+    linear-gradient(180deg, #070a16, var(--bg));
+  min-height:100vh;
+
+  /* ✅ más aire y sin “angostura” */
+  padding: var(--pad);
+  padding-bottom: calc(var(--pad) * 1.6);
+
+  /* ✅ evita scroll horizontal por tarjetas/horas largas */
+  overflow-x: hidden;
+}
+
+/* Container más ancho y con padding interno */
+.wrap{
+  max-width: var(--max);
+  margin: 0 auto;
+}
+
+/* Header */
+header{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  justify-content:space-between;
+  align-items:flex-end;
+  margin-bottom:18px;
+}
+
+h1{
+  margin:0;
+  font-size:clamp(22px, 2.6vw, 34px);
+  letter-spacing:.2px;
+}
+
+.subtitle{
+  margin:6px 0 0;
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.35;
+  max-width: 70ch; /* ✅ evita columnas de texto ultra-largas */
+}
+
+/* Chips */
+.chips{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+.chip{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.03);
+  padding:8px 10px;
+  border-radius:999px;
+  font-size:12px;
+  color:var(--muted);
+  backdrop-filter: blur(8px);
+}
+.chip b{ color:var(--text); font-weight:650; }
+
+/* ✅ Grid: desktop 7 columnas, pero sin romperse y sin scroll */
+.grid{
+  display:grid;
+  gap: var(--gap);
+
+  /* En pantallas grandes, 7 columnas */
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+
+  /* ✅ Si algo se pasa de ancho, que se recorte a contenedor (sin scroll) */
+  width: 100%;
+}
+
+/* Día */
+.day{
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  overflow:hidden;
+
+  /* ✅ que no se vean “tubitos”: más altura y mejor distribución */
+  min-height: 240px;
+}
+
+/* Cabecera día */
+.day__head{
+  padding:12px 12px 10px;
+  border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.day__name{
+  font-weight:750;
+  letter-spacing:.2px;
+  font-size:13px;
+  text-transform:uppercase;
+  color:rgba(255,255,255,.88);
+}
+.day__count{
+  font-family:var(--mono);
+  font-size:12px;
+  color:var(--muted);
+  opacity:.95;
+}
+
+/* Body */
+.day__body{
+  padding:10px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+/* Evento */
+.event{
+  background:linear-gradient(180deg, rgba(18,28,59,.95), rgba(18,28,59,.72));
+  border:1px solid rgba(255,255,255,.10);
+  border-left:4px solid var(--accent);
+  border-radius:14px;
+  padding:10px 10px 10px 12px;
+  box-shadow: 0 10px 18px rgba(0,0,0,.18);
+
+  /* ✅ evita que un texto largo empuje el layout y cree scroll */
+  min-width: 0;
+}
+.event.purple{ border-left-color: var(--accent2); }
+.event.green{ border-left-color: var(--good); }
+.event.orange{ border-left-color: var(--warn); }
+
+.event__top{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:flex-start;
+  margin-bottom:6px;
+}
+.event__title{
+  font-weight:750;
+  font-size:13px;
+  line-height:1.25;
+  margin:0;
+
+  /* ✅ textos largos que no rompan ancho */
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.event__time{
+  font-family:var(--mono);
+  font-size:12px;
+  color:rgba(255,255,255,.78);
+
+  /* ✅ si el espacio es chico, que baje línea antes de crear scroll */
+  white-space: normal;
+  text-align:right;
+}
+
+.event__meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  align-items:center;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.2;
+}
+.tag{
+  font-family:var(--mono);
+  font-size:11px;
+  padding:4px 8px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.03);
+  color:rgba(255,255,255,.76);
+
+  /* ✅ tags no deben empujar */
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Empty */
+.empty{
+  color:rgba(255,255,255,.45);
+  font-size:12px;
+  padding:18px 10px;
+  border:1px dashed rgba(255,255,255,.16);
+  border-radius:14px;
+  text-align:center;
+}
+
+/* Sección asíncrona */
+.section{
+  margin-top:18px;
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  overflow:hidden;
+}
+.section__head{
+  padding:12px 14px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+}
+.section__title{
+  margin:0;
+  font-weight:800;
+  font-size:14px;
+  letter-spacing:.2px;
+}
+.section__body{
+  padding:12px 14px 16px;
+
+  /* ✅ mejor responsivo: auto-fit */
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap:12px;
+}
+
+.async{
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.10);
+  background:linear-gradient(180deg, rgba(15,23,48,.95), rgba(15,23,48,.70));
+  padding:12px;
+  min-width:0;
+}
+.async h3{ margin:0 0 6px; font-size:13px; font-weight:800; overflow-wrap:anywhere; }
+.async p{ margin:0; color:var(--muted); font-size:12px; line-height:1.35; }
+.async .tag{ margin-top:10px; display:inline-block; }
+
+/* Footer */
+footer{
+  margin-top:14px;
+  color:rgba(255,255,255,.55);
+  font-size:12px;
+  line-height:1.4;
+}
+
+/* ✅ RESPONSIVE PRO (sin scroll horizontal) */
+@media (max-width: 1200px){
+  /* 4 columnas (tablets horizontales / laptops chicas) */
+  .grid{ grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+@media (max-width: 920px){
+  /* 2 columnas */
+  .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 560px){
+  /* 1 columna */
+  .grid{ grid-template-columns: 1fr; }
+  header{ align-items:flex-start; }
+  .event__top{ flex-direction:column; align-items:flex-start; }
+  .event__time{ text-align:left; }
+}
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Horario semanal</h1>
+        <p class="subtitle">
+          Vista por días (Zoom en vivo) + cursos <span style="color:var(--accent)">Virtual 24/7</span>
+        </p>
+      </div>
+      <div class="chips">
+        <div class="chip"><b>Modalidad:</b> En vivo (Zoom) / Asíncrono</div>
+        <div class="chip"><b>Zona:</b> Hora local</div>
+      </div>
+    </header>
+
+    <!-- SEMANA -->
+    <section class="grid" aria-label="Horario por días">
+
+      <!-- LUNES -->
+      <article class="day">
+        <div class="day__head">
+          <div class="day__name">Lunes</div>
+          <div class="day__count">1 clase</div>
+        </div>
+        <div class="day__body">
+          <div class="event green">
+            <div class="event__top">
+              <p class="event__title">1D21E · Derechos Humanos</p>
+              <div class="event__time">20:15 – 22:30</div>
+            </div>
+            <div class="event__meta">
+              <span class="tag">Sección 46339</span>
+              <span class="tag">Virtual en vivo (Zoom)</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- MARTES -->
+      <article class="day">
+        <div class="day__head">
+          <div class="day__name">Martes</div>
+          <div class="day__count">3 clases</div>
+        </div>
+        <div class="day__body">
+          <div class="event purple">
+            <div class="event__top">
+              <p class="event__title">1D23E · Teoría General del Acto Jurídico</p>
+              <div class="event__time">13:45 – 15:15</div>
+            </div>
+            <div class="event__meta">
+              <span class="tag">Sección 46315</span>
+              <span class="tag">Virtual en vivo (Zoom)</span>
+            </div>
+          </div>
+
+          <div class="event orange">
+            <div class="event__top">
+              <p class="event__title">1D22E · Derecho Constitucional</p>
+              <div class="event__time">18:30 – 20:00</div>
+            </div>
+            <div class="event__meta">
+              <span class="tag">Sección 38022</span>
+              <span class="tag">Virtual en vivo (Zoom)</span>
+            </div>
+          </div>
+
+          <div class="event green">
+            <div class="event__top">
+              <p class="event__title">1D25E · Derecho de Familia y Sucesiones</p>
+              <div class="event__time">20:15 – 22:30</div>
+            </div>
+            <div class="event__meta">
+              <span class="tag">Sección 29100</span>
+              <span class="tag">Virtual en vivo (Zoom)</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- MIÉRCOLES -->
+      <article class="day">
+        <div class="day__head">
+          <div class="day__name">Miércoles</div>
+          <div class="day__count">1 clase</div>
+        </div>
+        <div class="day__body">
+          <div class="event purple">
+            <div class="event__top">
+              <p class="event__title">1A21L · Problemas y Desafíos en el Perú Actual</p>
+              <div class="event__time">18:30 – 20:45</div>
+            </div>
+            <div class="event__meta">
+              <span class="tag">Sección 55409</span>
+              <span class="tag">Virtual en vivo (Zoom)</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- JUEVES -->
+      <article class="day">
+        <div class="day__head">
+          <div class="day__name">Jueves</div>
+          <div class="day__count">1 clase</div>
+        </div>
+        <div class="day__body">
+          <div class="event orange">
+            <div class="event__top">
+              <p class="event__title">1D22E · Derecho Constitucional</p>
+              <div class="event__time">20:15 – 21:45</div>
+            </div>
+            <div class="event__meta">
+              <span class="tag">Sección 38022</span>
+              <span class="tag">Virtual en vivo (Zoom)</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- VIERNES -->
+      <article class="day">
+        <div class="day__head">
+          <div class="day__name">Viernes</div>
+          <div class="day__count">2 clases</div>
+        </div>
+        <div class="day__body">
+          <div class="event purple">
+            <div class="event__top">
+              <p class="event__title">1D23E · Teoría General del Acto Jurídico</p>
+              <div class="event__time">13:45 – 15:15</div>
+            </div>
+            <div class="event__meta">
+              <span class="tag">Sección 46315</span>
+              <span class="tag">Virtual en vivo (Zoom)</span>
+            </div>
+          </div>
+
+          <div class="event green">
+            <div class="event__top">
+              <p class="event__title">1D25E · Derecho de Familia y Sucesiones</p>
+              <div class="event__time">18:30 – 20:00</div>
+            </div>
+            <div class="event__meta">
+              <span class="tag">Sección 29100</span>
+              <span class="tag">Virtual en vivo (Zoom)</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- SÁBADO -->
+      <article class="day">
+        <div class="day__head">
+          <div class="day__name">Sábado</div>
+          <div class="day__count">0 clases</div>
+        </div>
+        <div class="day__body">
+          <div class="empty">Libre. Aprovecha para adelantar lo “Virtual 24/7” o descansar como persona decente 😄</div>
+        </div>
+      </article>
+
+      <!-- DOMINGO -->
+      <article class="day">
+        <div class="day__head">
+          <div class="day__name">Domingo</div>
+          <div class="day__count">0 clases</div>
+        </div>
+        <div class="day__body">
+          <div class="empty">Libre. Domingo es domingo. Punto.</div>
+        </div>
+      </article>
+
+    </section>
+
+    <!-- VIRTUAL 24/7 -->
+    <section class="section" aria-label="Cursos Virtual 24/7">
+      <div class="section__head">
+        <h2 class="section__title">Cursos Virtual 24/7 (asíncronos)</h2>
+        <div class="chip"><b>Tip:</b> Agéndalos con bloques de estudio</div>
+      </div>
+
+      <div class="section__body">
+        <div class="async">
+          <h3>1A16E · Comprensión y Redacción de Textos II</h3>
+          <p>Disponible las 24 horas durante el ciclo.</p>
+          <span class="tag">Sección 17719</span>
+          <span class="tag">Virtual 24/7</span>
+        </div>
+
+        <div class="async">
+          <h3>1N051 · Inglés II</h3>
+          <p>Disponible las 24 horas durante el ciclo.</p>
+          <span class="tag">Sección 16226</span>
+          <span class="tag">Virtual 24/7</span>
+        </div>
+
+        <div class="async">
+          <h3>1N07C · Ciudadanía y Reflexión Ética</h3>
+          <p>Disponible las 24 horas durante el ciclo.</p>
+          <span class="tag">Sección 16275</span>
+          <span class="tag">Virtual 24/7</span>
+        </div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>
