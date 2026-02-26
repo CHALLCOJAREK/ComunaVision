@@ -1,4 +1,4 @@
-# DataPulse/gitpush.py
+# C:\Proyectos\ComunaVision\gitpush.py
 import subprocess
 import datetime
 import sys
@@ -8,118 +8,207 @@ import shutil
 # ======================================================
 #   CONFIG
 # ======================================================
+ROOT_PROYECTO = r"C:\Proyectos\ComunaVision"
+
 RUTA_BACKUP = r"C:\BACKUPS_JAREK\Backup-ComunaVision"
-RUTA_ESTRUCTURA = r"C:\Proyectos\ComunaVision\estructura.txt"
+RUTA_ESTRUCTURA = os.path.join(ROOT_PROYECTO, "estructura.txt")
 
-# Carpetas cuyos CONTENIDOS NO deben mostrarse
-CARPETAS_IGNORADAS = ["forge_env", "venv", ".venv", "env"]
+# ✅ SOLO esto se procesa (allowlist)
+INCLUIR = [
+    r"Backend",
+    r"database",
+    r"docs",
+    r"Frontend",
+    r"OCR",
+    r"scripts",
+    r".gitignore",
+    r"estructura.txt",
+    r"gitpush.py",
+    r"Horario.html",
+    r"README.md",
+]
 
-# Carpetas especiales con profundidad limitada (solo nivel 1–2)
+# ⛔ EXCLUSIONES explícitas dentro de lo incluido
+EXCLUIR = [
+    r"Backend\.venv",
+    r"Backend\alembic",
+]
+
+# Para estructura: no listar contenido de carpetas (si lo deseas)
 CARPETAS_NIVEL_LIMITADO = [".git"]
 
 
 # ======================================================
-# Ejecutar comandos con control elegante
+# Helpers
 # ======================================================
-def run(cmd, msg_ok=None):
+def norm_rel(p: str) -> str:
+    """Normaliza a ruta relativa con backslashes (Windows)."""
+    p = p.strip().strip('"')
+    if os.path.isabs(p):
+        p = os.path.relpath(p, ROOT_PROYECTO)
+    return os.path.normpath(p)
+
+def is_excluded(rel_path: str) -> bool:
+    rel_path = norm_rel(rel_path)
+    for ex in EXCLUIR:
+        exn = norm_rel(ex)
+        if rel_path == exn or rel_path.startswith(exn + os.sep):
+            return True
+    return False
+
+def is_included(rel_path: str) -> bool:
+    rel_path = norm_rel(rel_path)
+    for inc in INCLUIR:
+        incn = norm_rel(inc)
+        if rel_path == incn or rel_path.startswith(incn + os.sep):
+            return True
+    return False
+
+def run(cmd, msg_ok=None, allow_fail=False):
     result = subprocess.run(cmd, shell=True, text=True)
-    if result.returncode != 0:
+    if result.returncode != 0 and not allow_fail:
         print(f"\n❌  ERROR ejecutando: {cmd}")
         sys.exit(1)
-    if msg_ok:
+    if msg_ok and result.returncode == 0:
         print(f"   ✔️  {msg_ok}")
+    return result.returncode
 
 
 # ======================================================
-# Crear backup completo con progreso REAL %
+# Backup SOLO allowlist (excluyendo lo bloqueado)
 # ======================================================
 def hacer_backup():
-    origen = os.path.abspath(os.getcwd())
     os.makedirs(RUTA_BACKUP, exist_ok=True)
 
     fecha = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    destino = os.path.join(RUTA_BACKUP, f"Backup_{fecha}")
+    destino_root = os.path.join(RUTA_BACKUP, f"Backup_{fecha}")
 
-    print("\n🗂️  Creando backup del proyecto…\n")
+    print("\n🗂️  Creando backup (solo allowlist)…\n")
 
-    # Contar archivos
-    total_archivos = 0
-    for ruta_actual, subdirs, files in os.walk(origen):
-        if any(ign in ruta_actual for ign in CARPETAS_IGNORADAS):
+    # Recolectar archivos a copiar
+    archivos = []
+    for inc in INCLUIR:
+        rel = norm_rel(inc)
+        abs_path = os.path.join(ROOT_PROYECTO, rel)
+
+        if not os.path.exists(abs_path):
             continue
-        total_archivos += len(files)
 
-    if total_archivos == 0:
-        print("❌ No hay archivos para copiar.")
+        if os.path.isfile(abs_path):
+            if not is_excluded(rel):
+                archivos.append(rel)
+            continue
+
+        # carpeta
+        for carpeta_raiz, subdirs, files in os.walk(abs_path):
+            rel_dir = os.path.relpath(carpeta_raiz, ROOT_PROYECTO)
+            rel_dir = norm_rel(rel_dir)
+
+            # cortar ramas excluidas
+            subdirs[:] = [d for d in subdirs if not is_excluded(os.path.join(rel_dir, d))]
+
+            if is_excluded(rel_dir):
+                continue
+
+            for f in files:
+                rel_file = norm_rel(os.path.join(rel_dir, f))
+                if is_included(rel_file) and not is_excluded(rel_file):
+                    archivos.append(rel_file)
+
+    archivos = sorted(set(archivos))
+    total = len(archivos)
+
+    if total == 0:
+        print("❌ No hay archivos para copiar (allowlist vacío o rutas no existen).")
         return
 
-    os.makedirs(destino, exist_ok=True)
+    os.makedirs(destino_root, exist_ok=True)
 
-    archivos_copiados = 0
-    for ruta_actual, subdirs, files in os.walk(origen):
+    copiados = 0
+    for rel_file in archivos:
+        src = os.path.join(ROOT_PROYECTO, rel_file)
+        dst = os.path.join(destino_root, rel_file)
 
-        if any(ign in ruta_actual for ign in CARPETAS_IGNORADAS):
-            continue
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        try:
+            shutil.copy2(src, dst)
+            copiados += 1
+            porcentaje = (copiados / total) * 100
+            sys.stdout.write(f"\r📦 Copiando archivos… {porcentaje:6.2f}%")
+            sys.stdout.flush()
+        except Exception as e:
+            print(f"\n❌ Error copiando {src}: {e}")
 
-        rel_path = os.path.relpath(ruta_actual, origen)
-        destino_carpeta = os.path.join(destino, rel_path)
-        os.makedirs(destino_carpeta, exist_ok=True)
-
-        for file in files:
-            origen_file = os.path.join(ruta_actual, file)
-            destino_file = os.path.join(destino_carpeta, file)
-
-            try:
-                shutil.copy2(origen_file, destino_file)
-                archivos_copiados += 1
-                porcentaje = (archivos_copiados / total_archivos) * 100
-
-                sys.stdout.write(f"\r📦 Copiando archivos… {porcentaje:6.2f}%")
-                sys.stdout.flush()
-
-            except Exception as e:
-                print(f"\n❌ Error copiando {origen_file}: {e}")
-
-    print(f"\n\n   ✔️  Backup creado en:\n       {destino}")
+    print(f"\n\n   ✔️  Backup creado en:\n       {destino_root}")
 
 
 # ======================================================
-# Generar estructura del proyecto
+# Estructura SOLO allowlist (excluyendo lo bloqueado)
 # ======================================================
 def escribir_estructura():
-    print("\n📄  Generando estructura del proyecto…")
+    print("\n📄  Generando estructura del proyecto (solo allowlist)…")
 
-    root = os.path.abspath(os.getcwd())
-    lines = ["📦 PulseForge\n"]
+    lines = ["📦 ComunaVision\n"]
 
-    for carpeta_raiz, subdirs, files in os.walk(root):
-        rel = os.path.relpath(carpeta_raiz, root)
+    def add_file_line(rel_file: str, depth: int):
+        indent = " ┃ " * depth
+        lines.append(f"{indent} ┣ 📜 {os.path.basename(rel_file)}\n")
 
-        if any(rel.split(os.sep)[0] == ign for ign in CARPETAS_IGNORADAS):
+    def add_folder_line(name: str, depth: int, limited: bool = False):
+        indent = " ┃ " * depth
+        if limited:
+            lines.append(f"{indent}📂 {name}  (contenido limitado)\n")
+        else:
+            lines.append(f"{indent}📂 {name}\n")
+
+    # Para que salga ordenado y consistente:
+    incluir_norm = [norm_rel(x) for x in INCLUIR]
+    incluir_norm = sorted(set(incluir_norm), key=lambda s: (s.count(os.sep), s.lower()))
+
+    for inc in incluir_norm:
+        if is_excluded(inc):
             continue
 
-        partes = rel.split(os.sep)
-        carpeta_top = partes[0]
-
-        if carpeta_top in CARPETAS_NIVEL_LIMITADO:
-            nivel = len(partes)
-
-            if nivel == 1:
-                lines.append(f"📂 {carpeta_top}  (contenido limitado)\n")
-            elif nivel == 2:
-                indent = " ┃ "
-                lines.append(f"{indent}📂 {partes[1]}\n")
-
+        abs_path = os.path.join(ROOT_PROYECTO, inc)
+        if not os.path.exists(abs_path):
             continue
 
-        if rel != ".":
-            indent = " ┃ " * (rel.count(os.sep))
-            folder_name = os.path.basename(carpeta_raiz)
-            lines.append(f"{indent}📂 {folder_name}\n")
+        # archivo suelto
+        if os.path.isfile(abs_path):
+            add_file_line(inc, 0)
+            continue
 
-        for archivo in files:
-            indent = " ┃ " * (rel.count(os.sep))
-            lines.append(f"{indent} ┣ 📜 {archivo}\n")
+        # carpeta
+        top_name = os.path.basename(inc)
+        add_folder_line(top_name, 0)
+
+        for carpeta_raiz, subdirs, files in os.walk(abs_path):
+            rel_dir = norm_rel(os.path.relpath(carpeta_raiz, ROOT_PROYECTO))
+
+            if is_excluded(rel_dir):
+                continue
+
+            # limitar .git si aparece dentro de included (por si acaso)
+            partes = rel_dir.split(os.sep)
+            if partes and partes[0] in CARPETAS_NIVEL_LIMITADO:
+                nivel = len(partes) - 1
+                if nivel == 0:
+                    add_folder_line(partes[0], 0, limited=True)
+                elif nivel == 1:
+                    add_folder_line(partes[1], 1, limited=False)
+                continue
+
+            depth = max(0, rel_dir.count(os.sep) - inc.count(os.sep))
+            if rel_dir != inc:
+                add_folder_line(os.path.basename(rel_dir), depth)
+
+            # cortar ramas excluidas
+            subdirs[:] = [d for d in subdirs if not is_excluded(os.path.join(rel_dir, d))]
+
+            for f in sorted(files, key=lambda s: s.lower()):
+                rel_file = norm_rel(os.path.join(rel_dir, f))
+                if is_included(rel_file) and not is_excluded(rel_file):
+                    add_file_line(rel_file, depth)
 
     with open(RUTA_ESTRUCTURA, "w", encoding="utf-8") as f:
         f.writelines(lines)
@@ -128,16 +217,49 @@ def escribir_estructura():
 
 
 # ======================================================
-# PROCESO PRINCIPAL — ORDEN CORRECTO
-# 1) Estructura
-# 2) Git push
-# 3) Backup
+# Git: add SOLO allowlist + excluir lo bloqueado
+# ======================================================
+def git_add_allowlist():
+    # 1) add explícito de lo permitido
+    for inc in INCLUIR:
+        rel = norm_rel(inc)
+        if is_excluded(rel):
+            continue
+        abs_path = os.path.join(ROOT_PROYECTO, rel)
+        if os.path.exists(abs_path):
+            run(f'git add "{rel}"')
+
+    # 2) por seguridad, “unstage” de exclusiones si se colaron
+    for ex in EXCLUIR:
+        rel = norm_rel(ex)
+        abs_path = os.path.join(ROOT_PROYECTO, rel)
+        if os.path.exists(abs_path):
+            run(f'git reset -q HEAD -- "{rel}"', allow_fail=True)
+
+def git_has_changes():
+    # retorna 0 si hay cambios staged/unstaged, 1 si limpio
+    # (usamos --porcelain: si hay output => cambios)
+    p = subprocess.run("git status --porcelain", shell=True, text=True, capture_output=True)
+    out = (p.stdout or "").strip()
+    return len(out) > 0
+
+def git_has_staged_changes():
+    # 0 si hay staged, 1 si no
+    p = subprocess.run("git diff --cached --name-only", shell=True, text=True, capture_output=True)
+    out = (p.stdout or "").strip()
+    return len(out) > 0
+
+
+# ======================================================
+# MAIN
 # ======================================================
 if __name__ == "__main__":
+    os.chdir(ROOT_PROYECTO)
+
     mensaje = f"Auto-commit {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
 
     print("\n====================================================")
-    print(" 🔥  GIT PUSH + BACKUP + ESTRUCTURA – Fénix Engine v5 ")
+    print(" 🔥  GIT PUSH + BACKUP + ESTRUCTURA – Allowlist Mode ")
     print("====================================================\n")
 
     print("📌  Inicializando proceso...\n")
@@ -145,17 +267,25 @@ if __name__ == "__main__":
     # 1) ESTRUCTURA
     escribir_estructura()
 
-    # 2) GIT
-    print("\n📂  Añadiendo archivos…")
-    run("git add .", "Archivos añadidos al stage")
+    # 2) GIT (solo allowlist)
+    print("\n📂  Añadiendo archivos (solo allowlist)…")
+    git_add_allowlist()
+    print("   ✔️  Stage listo (allowlist)")
 
-    print("\n📝  Creando commit…")
-    run(f'git commit -m "{mensaje}"', "Commit creado")
-
-    print("\n🚀  Subiendo cambios al repositorio remoto…")
-    run("git push", "Push completado")
+    # Si no hay staged, no comitea
+    if not git_has_staged_changes():
+        print("\n🟡  No hay cambios para commitear (staged vacío).")
+    else:
+        print("\n📝  Creando commit…")
+        rc = run(f'git commit -m "{mensaje}"', allow_fail=True)
+        if rc == 0:
+            print("   ✔️  Commit creado")
+            print("\n🚀  Subiendo cambios al repositorio remoto…")
+            run("git push", "Push completado")
+        else:
+            print("🟡  Git commit no se creó (posible: nada que commitear).")
 
     # 3) BACKUP
     hacer_backup()
 
-    print("\n✨  Todo ok, Jarek. Estructura primero + Git al día + Backup asegurado.\n")
+    print("\n✨  Todo ok. Solo lo permitido, y lo prohibido ni lo mira. 💼⚡\n")
