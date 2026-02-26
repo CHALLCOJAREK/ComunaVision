@@ -1,0 +1,231 @@
+/* C:\Proyectos\ComunaVision\Frontend\src\pages\Comuneros\ComunerosPage.module.css */
+/* Scope-only: NO tokens nuevos, NO :root, NO hardcodes */
+
+.scope{
+  width: 100%;
+  animation: cvFadeUp var(--t-med) ease both;
+}
+
+/* Página base */
+.scope :global(.page){
+  width: min(1200px, calc(100% - 32px));
+  margin-inline: auto;
+  padding: var(--sp-5) 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+/* Toolbar “premium SaaS” */
+.scope :global(.toolbar){
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+
+  padding: var(--sp-3);
+  border-radius: var(--r-xl);
+  border: 1px solid var(--stroke);
+  background: var(--surface);
+  box-shadow: var(--shadow2);
+
+  position: sticky;
+  top: var(--sp-3);
+  z-index: 5;
+  backdrop-filter: blur(10px);
+}
+
+.scope :global(.toolbar-left),
+.scope :global(.toolbar-right){
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+@media (max-width: 860px){
+  .scope :global(.toolbar){
+    position: static;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .scope :global(.toolbar-right){
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+}
+
+/* Search */
+.scope :global(.search){
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 10px 12px;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--stroke);
+  background: var(--surface2);
+
+  min-width: min(520px, 100%);
+  transition: transform var(--t-fast) ease, border-color var(--t-fast) ease, filter var(--t-fast) ease;
+}
+
+.scope :global(.search:focus-within){
+  box-shadow: var(--ring);
+  border-color: var(--stroke2);
+  filter: brightness(1.02);
+}
+
+.scope :global(.input){
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--sans);
+}
+
+.scope :global(.input::placeholder){
+  color: var(--faint);
+}
+
+/* Ajustes de botones (porque tu global.css no tiene estas variantes exactas) */
+.scope :global(.btn){
+  will-change: transform;
+}
+
+.scope :global(.btn-sm){
+  padding: 8px 10px;
+  border-radius: var(--r-md);
+  box-shadow: none;
+}
+
+.scope :global(.btn-ghost){
+  background: transparent;
+  border-color: var(--stroke);
+  box-shadow: none;
+}
+
+.scope :global(.btn-ghost:hover){
+  background: var(--surface2);
+  border-color: var(--stroke2);
+}
+
+.scope :global(.btn-primary){
+  border-color: color-mix(in srgb, var(--brand) 28%, var(--stroke2));
+  background: color-mix(in srgb, var(--brand) 16%, var(--surface2));
+}
+
+.scope :global(.btn-primary:hover){
+  border-color: color-mix(in srgb, var(--brand) 38%, var(--stroke2));
+  filter: brightness(1.03);
+}
+
+.scope :global(.btn-danger){
+  border-color: color-mix(in srgb, var(--bad) 28%, var(--stroke2));
+  background: color-mix(in srgb, var(--bad) 14%, var(--surface2));
+}
+
+.scope :global(.btn-danger:hover){
+  border-color: color-mix(in srgb, var(--bad) 38%, var(--stroke2));
+}
+
+/* Card: ya existe en global.css, acá solo damos “layout polish” */
+.scope :global(.card){
+  overflow: hidden;
+}
+
+/* Table wrapper */
+.scope :global(.table-wrap){
+  overflow: auto;
+  border-radius: var(--r-lg);
+}
+
+/* Tabla */
+.scope :global(.table){
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 14px;
+}
+
+.scope :global(.table thead th){
+  position: sticky;
+  top: 0;
+  z-index: 2;
+
+  text-align: left;
+  font-weight: 700;
+  color: var(--text);
+
+  padding: 12px 14px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--stroke);
+  white-space: nowrap;
+}
+
+.scope :global(.table tbody td){
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--stroke);
+  color: var(--text);
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.scope :global(.table tbody tr){
+  transition: background var(--t-fast) ease, transform var(--t-fast) ease;
+}
+
+.scope :global(.table tbody tr:hover){
+  background: var(--surface);
+}
+
+.scope :global(.table-empty){
+  text-align: center;
+  color: var(--muted);
+  padding: 22px 14px;
+}
+
+/* Acciones por fila */
+.scope :global(.row-actions){
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Toast */
+.scope :global(.toast){
+  width: min(680px, calc(100% - 32px));
+  margin-inline: auto;
+  padding: 12px 14px;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--stroke);
+  background: var(--surface2);
+  box-shadow: var(--shadow2);
+  animation: cvToastIn var(--t-med) ease both;
+}
+
+.scope :global(.toast-success){
+  border-color: color-mix(in srgb, var(--good) 30%, var(--stroke2));
+  background: color-mix(in srgb, var(--good) 12%, var(--surface2));
+}
+
+.scope :global(.toast-error){
+  border-color: color-mix(in srgb, var(--bad) 30%, var(--stroke2));
+  background: color-mix(in srgb, var(--bad) 12%, var(--surface2));
+}
+
+.scope :global(.toast-info){
+  border-color: color-mix(in srgb, var(--info) 30%, var(--stroke2));
+  background: color-mix(in srgb, var(--info) 12%, var(--surface2));
+}
+
+/* Micro-animaciones */
+@keyframes cvFadeUp{
+  from{ opacity: 0; transform: translateY(8px); filter: blur(6px); }
+  to{ opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+@keyframes cvToastIn{
+  from{ opacity: 0; transform: translateY(-8px); filter: blur(6px); }
+  to{ opacity: 1; transform: translateY(0); filter: blur(0); }
+}

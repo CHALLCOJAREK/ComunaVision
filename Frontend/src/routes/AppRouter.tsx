@@ -1,8 +1,16 @@
 import React from "react";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import Login from "../pages/Login";
-import ComunerosPage from "../pages/ComunerosPage";
+
+import Login from "../pages/Login/Login";
+import Layout from "../components/Layout";
+
+import HomePage from "../pages/Home/HomePage";
+import ComunerosPage from "../pages/Comuneros/ComunerosPage";
+import ComuneroNuevoPage from "../pages/ComuneroNuevo/ComuneroNuevoPage";
+import ComuneroEditarPage from "../pages/ComuneroEditar/ComuneroEditarPage";
+import EstadisticasPage from "../pages/Estadisticas/EstadisticasPage";
+import ConfiguracionPage from "../pages/Configuracion/ConfiguracionPage";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
@@ -13,21 +21,90 @@ export default function AppRouter() {
   const { isAuthenticated } = useAuth();
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={isAuthenticated ? <Navigate to="/" replace /> : <Login />} />
+    <Routes>
+      {/* Login */}
+      <Route
+        path="/login"
+        element={isAuthenticated ? <Navigate to="/home" replace /> : <Login />}
+      />
 
-        <Route
-          path="/"
-          element={
-            <PrivateRoute>
+      {/* Root */}
+      <Route path="/" element={<Navigate to="/home" replace />} />
+
+      {/* Home */}
+      <Route
+        path="/home"
+        element={
+          <PrivateRoute>
+            <Layout>
+              <HomePage />
+            </Layout>
+          </PrivateRoute>
+        }
+      />
+
+      {/* Comuneros - listado */}
+      <Route
+        path="/comuneros"
+        element={
+          <PrivateRoute>
+            <Layout>
               <ComunerosPage />
-            </PrivateRoute>
-          }
-        />
+            </Layout>
+          </PrivateRoute>
+        }
+      />
 
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+      {/* Comuneros - nuevo */}
+      <Route
+        path="/comuneros/nuevo"
+        element={
+          <PrivateRoute>
+            <Layout>
+              <ComuneroNuevoPage />
+            </Layout>
+          </PrivateRoute>
+        }
+      />
+
+      {/* Comuneros - editar */}
+      <Route
+        path="/comuneros/:id/editar"
+        element={
+          <PrivateRoute>
+            <Layout>
+              <ComuneroEditarPage />
+            </Layout>
+          </PrivateRoute>
+        }
+      />
+
+      {/* Estadísticas */}
+      <Route
+        path="/estadisticas"
+        element={
+          <PrivateRoute>
+            <Layout>
+              <EstadisticasPage />
+            </Layout>
+          </PrivateRoute>
+        }
+      />
+
+      {/* Configuración */}
+      <Route
+        path="/configuracion"
+        element={
+          <PrivateRoute>
+            <Layout>
+              <ConfiguracionPage />
+            </Layout>
+          </PrivateRoute>
+        }
+      />
+
+      {/* Catch-all */}
+      <Route path="*" element={<Navigate to="/home" replace />} />
+    </Routes>
   );
 }

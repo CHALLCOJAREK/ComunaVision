@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../services/api";
 
 type CampoTipo =
@@ -61,15 +61,22 @@ function normalizeTipo(tipo: string): CampoTipo {
 
 export default function DynamicForm({ initial, onChange, hideTitle }: Props) {
   const [campos, setCampos] = useState<Campo[]>([]);
-  const [values, setValues] = useState<Record<string, any>>(initial || {});
+  const [values, setValues] = useState<Record<string, any>>(() => initial ?? {});
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
+  // --- evita loops por cambios de referencia ---
+  const lastInitialSig = useRef<string>("");
+
   useEffect(() => {
-    const next = initial || {};
-    setValues(next);
-    onChange(pruneEmpty(next)); // importante: sincroniza al entrar en modo editar
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const next = initial ?? {};
+    const sig = JSON.stringify(next);
+
+    if (sig !== lastInitialSig.current) {
+      lastInitialSig.current = sig;
+      setValues(next);
+    }
+    // NO llamamos onChange aquí: eso dispara loops en edición
   }, [initial]);
 
   useEffect(() => {
@@ -99,27 +106,27 @@ export default function DynamicForm({ initial, onChange, hideTitle }: Props) {
 
   const cleaned = useMemo(() => pruneEmpty(values), [values]);
 
-  // Emite por si algo cambia por otro camino
+  // Emitimos SOLO si cambió de verdad
+  const lastEmitSig = useRef<string>("");
   useEffect(() => {
-    onChange(cleaned);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(cleaned)]);
+    const sig = JSON.stringify(cleaned);
+    if (sig !== lastEmitSig.current) {
+      lastEmitSig.current = sig;
+      onChange(cleaned);
+    }
+  }, [cleaned, onChange]);
 
   const setField = (name: string, v: any) => {
-    setValues((prev) => {
-      const next = { ...prev, [name]: v };
-      onChange(pruneEmpty(next)); // 🔥 emite inmediato: no se queda “un render atrás”
-      return next;
-    });
+    setValues((prev) => ({ ...prev, [name]: v }));
   };
 
-  if (loading) return <div style={{ opacity: 0.8 }}>Cargando campos…</div>;
-  if (err) return <div style={{ color: "crimson" }}>{err}</div>;
+  if (loading) return <div style={{ opacity: 0.8, color: "white" }}>Cargando campos…</div>;
+  if (err) return <div style={{ color: "tomato" }}>{err}</div>;
   if (!campos.length) return null;
 
   return (
     <div style={{ border: "1px solid rgba(0,0,0,.08)", padding: 12, borderRadius: 10 }}>
-      {!hideTitle && <h3 style={{ marginTop: 0 }}>Datos dinámicos</h3>}
+      {!hideTitle && <h3 style={{ marginTop: 0, color: "white" }}>Datos dinámicos</h3>}
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
         {campos.map((c) => {
@@ -139,8 +146,8 @@ export default function DynamicForm({ initial, onChange, hideTitle }: Props) {
 
           return (
             <div key={name}>
-              <label style={{ display: "block", fontSize: 13, marginBottom: 6 }}>
-                {label} {required ? <span style={{ color: "crimson" }}>*</span> : null}
+              <label style={{ display: "block", fontSize: 13, marginBottom: 6, color: "white" }}>
+                {label} {required ? <span style={{ color: "tomato" }}>*</span> : null}
               </label>
 
               {tipo === "textarea" ? (
@@ -160,7 +167,7 @@ export default function DynamicForm({ initial, onChange, hideTitle }: Props) {
                   ))}
                 </select>
               ) : tipo === "boolean" ? (
-                <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <label style={{ display: "flex", gap: 8, alignItems: "center", color: "white" }}>
                   <input type="checkbox" checked={!!v} onChange={(e) => setField(name, e.target.checked)} />
                   <span style={{ fontSize: 14, opacity: 0.9 }}>{v ? "Sí" : "No"}</span>
                 </label>

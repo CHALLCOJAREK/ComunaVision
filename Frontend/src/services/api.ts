@@ -41,15 +41,24 @@ async function parseResponse(res: Response) {
   try { return JSON.parse(text); } catch { return text; }
 }
 
+/** ✅ NUEVO: opciones extendidas */
+type RequestOptions = {
+  body?: any;
+  headers?: Record<string, string>;
+  auth?: boolean;
+  signal?: AbortSignal;
+
+  /** fuerza el tipo de respuesta */
+  responseType?: "json" | "text" | "blob";
+
+  /** evita logout automático en 401 cuando tú lo indiques */
+  logoutOn401?: boolean;
+};
+
 async function request<T>(
   method: string,
   path: string,
-  options?: {
-    body?: any;
-    headers?: Record<string, string>;
-    auth?: boolean;
-    signal?: AbortSignal;
-  }
+  options?: RequestOptions
 ): Promise<T> {
   const url = buildUrl(path);
   const auth = options?.auth ?? true;
@@ -81,11 +90,14 @@ async function request<T>(
   });
 
   if (!res.ok) {
-    const data = await parseResponse(res);
+    let data: any;
+    try { data = await parseResponse(res); } catch { data = undefined; }
+
     const payload: ApiErrorPayload | undefined =
       typeof data === "object" && data !== null ? data : undefined;
 
-    if (res.status === 401) window.dispatchEvent(new CustomEvent("auth:logout"));
+    const logoutOn401 = options?.logoutOn401 ?? true;
+    if (res.status === 401 && logoutOn401) window.dispatchEvent(new CustomEvent("auth:logout"));
 
     const msg =
       payload?.detail ||
@@ -94,18 +106,27 @@ async function request<T>(
     throw new ApiError(res.status, msg, payload);
   }
 
+  /** ✅ NUEVO: devolver blob/text/json según se pida */
+  const rt = options?.responseType ?? "json";
+  if (rt === "blob") return (await res.blob()) as unknown as T;
+  if (rt === "text") return (await res.text()) as unknown as T;
+
   return (await parseResponse(res)) as T;
 }
 
 export const api = {
-  get: <T>(path: string, opts?: Omit<Parameters<typeof request<T>>[2], "body">) =>
+  get: <T>(path: string, opts?: Omit<RequestOptions, "body">) =>
     request<T>("GET", path, opts),
-  post: <T>(path: string, body?: any, opts?: Omit<Parameters<typeof request<T>>[2], "body">) =>
+  post: <T>(path: string, body?: any, opts?: Omit<RequestOptions, "body">) =>
     request<T>("POST", path, { ...(opts || {}), body }),
-  put: <T>(path: string, body?: any, opts?: Omit<Parameters<typeof request<T>>[2], "body">) =>
+  put: <T>(path: string, body?: any, opts?: Omit<RequestOptions, "body">) =>
     request<T>("PUT", path, { ...(opts || {}), body }),
-  patch: <T>(path: string, body?: any, opts?: Omit<Parameters<typeof request<T>>[2], "body">) =>
+  patch: <T>(path: string, body?: any, opts?: Omit<RequestOptions, "body">) =>
     request<T>("PATCH", path, { ...(opts || {}), body }),
-  del: <T>(path: string, opts?: Omit<Parameters<typeof request<T>>[2], "body">) =>
+  del: <T>(path: string, opts?: Omit<RequestOptions, "body">) =>
     request<T>("DELETE", path, opts),
+
+  /** ✅ NUEVO: helper para descargas */
+  getBlob: (path: string, opts?: Omit<RequestOptions, "body">) =>
+    request<Blob>("GET", path, { ...(opts || {}), responseType: "blob" }),
 };

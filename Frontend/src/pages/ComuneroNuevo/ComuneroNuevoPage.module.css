@@ -1,0 +1,252 @@
+/* Scope principal */
+.scope{
+  width: 100%;
+  animation: cvFadeUp var(--t-med) ease both;
+}
+
+/* Wrapper centrado */
+.scope :global(.page){
+  width: min(960px, calc(100% - 32px));
+  margin-inline: auto;
+  padding: var(--sp-5) 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+/* Card principal */
+.card{
+  border-radius: var(--r-xl);
+  border: 1px solid var(--stroke);
+  background: var(--surface);
+  box-shadow: var(--shadow2);
+  padding: var(--sp-4);
+  backdrop-filter: blur(10px);
+  transition: transform var(--t-fast) ease, border-color var(--t-fast) ease;
+}
+
+.card:hover{
+  border-color: var(--stroke2);
+}
+
+/* Header */
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap: var(--sp-3);
+  flex-wrap:wrap;
+}
+
+.title{
+  margin:0;
+  font-size: 20px;
+  letter-spacing:.2px;
+}
+
+.subtitle{
+  margin:4px 0 0;
+  font-size:13px;
+  color: var(--muted);
+}
+
+/* Actions */
+.actions{
+  display:flex;
+  gap: var(--sp-2);
+}
+
+/* Botones */
+.btn{
+  padding: 10px 14px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--stroke2);
+  background: var(--surface2);
+  color: var(--text);
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  transition: transform var(--t-fast), filter var(--t-fast), border-color var(--t-fast);
+  will-change: transform;
+}
+
+.btn:hover{
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+}
+
+.btn:active{
+  transform: translateY(0);
+}
+
+.btn:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+  transform:none;
+}
+
+.btnPrimary{
+  border-color: color-mix(in srgb, var(--brand) 28%, var(--stroke2));
+  background: color-mix(in srgb, var(--brand) 16%, var(--surface2));
+}
+
+.btnPrimary:hover{
+  border-color: color-mix(in srgb, var(--brand) 38%, var(--stroke2));
+}
+
+.btnGhost{
+  background: transparent;
+  border-color: var(--stroke);
+}
+
+.btnGhost:hover{
+  background: var(--surface2);
+  border-color: var(--stroke2);
+}
+
+/* Grid */
+.formGrid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
+  gap: var(--sp-3);
+  margin-top: var(--sp-4);
+}
+
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.label{
+  font-size:13px;
+  color: var(--muted);
+}
+
+/* Inputs premium */
+.input{
+  padding: 12px 14px;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--stroke);
+  background: var(--surface2);
+  color: var(--text);
+  transition: border-color var(--t-fast), box-shadow var(--t-fast), transform var(--t-fast);
+}
+
+.input:hover{
+  border-color: var(--stroke2);
+}
+
+.input:focus{
+  outline:none;
+  border-color: color-mix(in srgb, var(--brand) 40%, var(--stroke2));
+  box-shadow: var(--ring);
+  transform: translateY(-1px);
+}
+
+.divider{
+  height:1px;
+  background: var(--stroke);
+  margin: var(--sp-4) 0;
+}
+
+.dynamicSection{
+  margin-top: var(--sp-2);
+}
+
+.sectionTitle{
+  margin:0 0 var(--sp-3);
+  font-size:14px;
+  color: var(--text);
+  letter-spacing:.2px;
+}
+
+/* ===============================
+   TOAST PREMIUM (tipo export)
+   =============================== */
+
+.toast{
+  width: min(720px, calc(100% - 32px));
+  margin-inline: auto;
+  padding: 14px 18px;
+  border-radius: var(--r-xl);
+  border: 1px solid var(--stroke);
+  background: var(--surface2);
+  box-shadow: var(--shadow2);
+  backdrop-filter: blur(12px);
+  animation: cvToastIn var(--t-med) ease both;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Glow superior sutil */
+.toast::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(
+      900px 240px at 10% 0%,
+      color-mix(in srgb, var(--brand) 18%, transparent),
+      transparent 60%
+    );
+  opacity:.6;
+  pointer-events:none;
+}
+
+.toastSuccess{
+  border-color: color-mix(in srgb, var(--good) 30%, var(--stroke2));
+  background:
+    radial-gradient(
+      900px 240px at 10% 0%,
+      color-mix(in srgb, var(--good) 18%, transparent),
+      transparent 60%
+    ),
+    var(--surface2);
+}
+
+.toastError{
+  border-color: color-mix(in srgb, var(--bad) 30%, var(--stroke2));
+  background:
+    radial-gradient(
+      900px 240px at 10% 0%,
+      color-mix(in srgb, var(--bad) 18%, transparent),
+      transparent 60%
+    ),
+    var(--surface2);
+}
+
+/* Spinner */
+.spinner{
+  width:14px;
+  height:14px;
+  border-radius:999px;
+  border:2px solid var(--stroke2);
+  border-top-color: var(--text);
+  animation: spin .8s linear infinite;
+}
+
+@keyframes spin{
+  to{ transform: rotate(360deg); }
+}
+
+/* Animaciones */
+@keyframes cvFadeUp{
+  from{ opacity: 0; transform: translateY(8px); filter: blur(6px); }
+  to{ opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+@keyframes cvToastIn{
+  from{ opacity: 0; transform: translateY(-10px); filter: blur(6px); }
+  to{ opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce){
+  .scope,
+  .toast{
+    animation:none !important;
+    transition:none !important;
+  }
+}

@@ -1,0 +1,92 @@
+/* =========================================================
+   THEME TOKENS (NO estilos de páginas aquí)
+   Default: DARK
+   Light ready via: <html data-theme="light">
+   ========================================================= */
+
+:root{
+  color-scheme: dark;
+
+  /* ========== Brand ========== */
+  --brand:  #6ee7ff;
+  --brand2: #a78bfa;
+
+  /* ========== Backgrounds ========== */
+  --bg0: #070b16;   /* app background top */
+  --bg1: #0b1220;   /* app background base */
+
+  /* ========== Surfaces ========== */
+  --surface:  rgba(255,255,255,.06);  /* cards */
+  --surface2: rgba(255,255,255,.09);  /* elevated cards */
+  --surface3: rgba(255,255,255,.12);  /* stronger */
+
+  /* ========== Borders / Lines ========== */
+  --stroke:  rgba(148,163,184,.12);
+  --stroke2: rgba(148,163,184,.18);
+
+  /* ========== Text ========== */
+  --text:  rgba(255,255,255,.92);
+  --muted: rgba(255,255,255,.65);
+  --faint: rgba(255,255,255,.45);
+
+  /* ========== Status ========== */
+  --good: #22c55e;
+  --warn: #f59e0b;
+  --bad:  #ef4444;
+  --info: #3b82f6;
+
+  /* ========== Radius ========== */
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 18px;
+  --r-xl: 22px;
+
+  /* ========== Shadow ========== */
+  --shadow:  0 22px 70px rgba(0,0,0,.55);
+  --shadow2: 0 10px 35px rgba(0,0,0,.45);
+
+  /* ========== Focus Ring ========== */
+  --ring: 0 0 0 3px rgba(110,231,255,.22), 0 0 0 1px rgba(110,231,255,.18);
+
+  /* ========== Fonts ========== */
+  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+
+  /* ========== Spacing (opcional, útil) ========== */
+  --sp-1: 6px;
+  --sp-2: 10px;
+  --sp-3: 14px;
+  --sp-4: 18px;
+  --sp-5: 24px;
+
+  /* ========== Transitions ========== */
+  --t-fast: 140ms;
+  --t-med:  220ms;
+}
+
+/* =========================================================
+   LIGHT THEME (ready)
+   Toggle: document.documentElement.dataset.theme = "light"
+   ========================================================= */
+:root[data-theme="light"]{
+  color-scheme: light;
+
+  --bg0:#f6f7fb;
+  --bg1:#eef1f8;
+
+  --surface:  rgba(15,23,42,.05);
+  --surface2: rgba(15,23,42,.07);
+  --surface3: rgba(15,23,42,.10);
+
+  --stroke:  rgba(15,23,42,.12);
+  --stroke2: rgba(15,23,42,.18);
+
+  --text:  rgba(15,23,42,.92);
+  --muted: rgba(15,23,42,.62);
+  --faint: rgba(15,23,42,.45);
+
+  --shadow:  0 22px 70px rgba(2,6,23,.12);
+  --shadow2: 0 10px 35px rgba(2,6,23,.10);
+
+  --ring: 0 0 0 3px rgba(59,130,246,.20), 0 0 0 1px rgba(59,130,246,.18);
+}
