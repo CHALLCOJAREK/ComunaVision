@@ -1,3 +1,6 @@
+// src/services/api.ts
+// Cliente HTTP mínimo (fetch wrapper) + Bearer token + manejo 401/403/409
+
 export type ApiErrorPayload = {
   detail?: string;
   code?: string;
@@ -19,6 +22,7 @@ export class ApiError extends Error {
 const DEFAULT_BASE_URL = "http://localhost:8000";
 
 function getBaseUrl(): string {
+  // Vite: import.meta.env.VITE_API_URL
   const envUrl = (import.meta as any)?.env?.VITE_API_URL as string | undefined;
   return (envUrl?.trim() || DEFAULT_BASE_URL).replace(/\/+$/, "");
 }
@@ -35,10 +39,15 @@ function buildUrl(path: string): string {
 
 async function parseResponse(res: Response) {
   const contentType = res.headers.get("content-type") || "";
-  if (contentType.includes("application/json")) return await res.json();
-
+  if (contentType.includes("application/json")) {
+    return await res.json();
+  }
   const text = await res.text();
-  try { return JSON.parse(text); } catch { return text; }
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
 }
 
 async function request<T>(
@@ -47,15 +56,18 @@ async function request<T>(
   options?: {
     body?: any;
     headers?: Record<string, string>;
-    auth?: boolean;
+    auth?: boolean; // default true
     signal?: AbortSignal;
   }
 ): Promise<T> {
   const url = buildUrl(path);
   const auth = options?.auth ?? true;
 
-  const headers: Record<string, string> = { ...(options?.headers || {}) };
+  const headers: Record<string, string> = {
+    ...(options?.headers || {}),
+  };
 
+  // JSON by default when body is object (except FormData / URLSearchParams)
   const isFormData = typeof FormData !== "undefined" && options?.body instanceof FormData;
   const isUrlParams = typeof URLSearchParams !== "undefined" && options?.body instanceof URLSearchParams;
 
@@ -85,7 +97,10 @@ async function request<T>(
     const payload: ApiErrorPayload | undefined =
       typeof data === "object" && data !== null ? data : undefined;
 
-    if (res.status === 401) window.dispatchEvent(new CustomEvent("auth:logout"));
+    // Si 401: token muerto => forzamos logout global
+    if (res.status === 401) {
+      window.dispatchEvent(new CustomEvent("auth:logout"));
+    }
 
     const msg =
       payload?.detail ||

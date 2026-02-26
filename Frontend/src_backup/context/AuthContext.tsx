@@ -1,3 +1,4 @@
+// src/context/AuthContext.tsx
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { authService } from "../services/authservice";
 
@@ -12,6 +13,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(() => authService.getToken());
+
   const isAuthenticated = !!token;
 
   const logout = () => {
@@ -25,6 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    // Si api.ts dispara "auth:logout" (401), cerramos sesión acá
     const onForceLogout = () => logout();
     window.addEventListener("auth:logout", onForceLogout as EventListener);
     return () => window.removeEventListener("auth:logout", onForceLogout as EventListener);
