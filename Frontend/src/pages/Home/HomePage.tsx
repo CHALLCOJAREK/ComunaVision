@@ -6,213 +6,310 @@ import { api } from "../../services/api";
 import {
   Plus,
   Users,
-  BarChart3,
   Settings,
-  Clock,
-  MapPin,
-  Wind,
   RefreshCw,
   CheckCircle,
   XCircle,
-  UserPlus,
-  Trash2,
-  Thermometer,
+  Download,
+  FileText,
+  Braces,
+  Globe,
+  Github,
+  Linkedin,
+  Instagram,
+  Facebook,
+  Clock,
+  LayoutGrid,
 } from "lucide-react";
 
 import styles from "./HomePage.module.css";
 
-type Comunero = {
-  id: number;
-  deleted_at?: string | null;
-  created_at?: string | null;
-};
+type Toast = { type: "success" | "error" | "info"; msg: string } | null;
 
 export default function Home() {
   const { token } = useAuth();
   const navigate = useNavigate();
 
-  const [now, setNow] = useState(new Date());
+  const [now, setNow] = useState(() => new Date());
+  const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState<Toast>(null);
 
-  const [total, setTotal] = useState<number | null>(null);
-  const [today, setToday] = useState<number | null>(null);
-  const [deleted, setDeleted] = useState<number | null>(null);
-  const [loadingKpis, setLoadingKpis] = useState(false);
-
-  const [city, setCity] = useState<string>("Detectando...");
-  const [temp, setTemp] = useState<number | null>(null);
-  const [wind, setWind] = useState<number | null>(null);
+  const [expFormat, setExpFormat] = useState<"csv" | "json">("csv");
+  const [expIncludeDeleted, setExpIncludeDeleted] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
-    const interval = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(interval);
+    const t = setInterval(() => setNow(new Date()), 15_000);
+    return () => clearInterval(t);
   }, []);
 
-  const clockLabel = useMemo(
-    () => `${now.toLocaleDateString()} • ${now.toLocaleTimeString()}`,
-    [now]
-  );
+  const dateTimeLabel = useMemo(() => {
+    const date = now.toLocaleDateString(undefined, {
+      weekday: "short",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    const time = now.toLocaleTimeString(undefined, {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    return `${date} • ${time}`;
+  }, [now]);
 
-  const loadKpis = async () => {
-    setLoadingKpis(true);
-    try {
-      const res = await api.get("/comuneros");
-      const rows: Comunero[] = res?.data ?? res ?? [];
-
-      const activos = rows.filter((c) => !c.deleted_at);
-      const eliminados = rows.filter((c) => !!c.deleted_at);
-
-      setTotal(activos.length);
-      setDeleted(eliminados.length);
-
-      const todayStr = new Date().toISOString().slice(0, 10);
-      const hoy = activos.filter((c) => c.created_at?.slice(0, 10) === todayStr).length;
-
-      setToday(hoy);
-    } catch {
-      setTotal(null);
-      setToday(null);
-      setDeleted(null);
-    } finally {
-      setLoadingKpis(false);
-    }
+  const pushToast = (t: Toast, ms = 1800) => {
+    setToast(t);
+    if (!t) return;
+    window.setTimeout(() => setToast(null), ms);
   };
 
-  const loadWeather = async () => {
+  const refresh = async () => {
+    setLoading(true);
+    setToast(null);
     try {
-      navigator.geolocation.getCurrentPosition(async (pos) => {
-        const lat = pos.coords.latitude;
-        const lon = pos.coords.longitude;
-
-        const r = await fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m&timezone=auto`
-        );
-
-        const j = await r.json();
-
-        setTemp(j?.current?.temperature_2m ?? null);
-        setWind(j?.current?.wind_speed_10m ?? null);
-        setCity("Tu ubicación");
-      });
+      await api.get("/comuneros");
+      pushToast({ type: "success", msg: "Actualizado" });
     } catch {
-      setCity("No disponible");
+      pushToast({ type: "error", msg: "Sin conexión" });
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadKpis();
-    loadWeather();
+    refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const value = (v: number | null) => (loadingKpis ? "…" : v ?? "—");
+  const doExport = async () => {
+    setExporting(true);
+    setToast(null);
+    try {
+      const url = `/exportaciones/comuneros?formato=${expFormat}&include_deleted=${
+        expIncludeDeleted ? "true" : "false"
+      }`;
+
+      const res = await api.get(url, { responseType: "blob" as any });
+      const blob = res?.data instanceof Blob ? res.data : new Blob([res?.data ?? ""]);
+
+      const ext = expFormat === "csv" ? "csv" : "json";
+      const filename = `comuneros_${new Date()
+        .toISOString()
+        .slice(0, 19)
+        .replace(/[:T]/g, "-")}.${ext}`;
+
+      const a = document.createElement("a");
+      const href = URL.createObjectURL(blob);
+      a.href = href;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(href);
+
+      pushToast({ type: "success", msg: "Exportado" }, 2000);
+    } catch {
+      pushToast({ type: "error", msg: "Error al exportar" }, 2200);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const statusClass = token ? styles.good : styles.bad;
 
+  const quickActions = [
+    { label: "Registrar", icon: Plus, onClick: () => navigate("/comuneros/nuevo"), primary: true },
+    { label: "Comuneros", icon: Users, onClick: () => navigate("/comuneros") },
+    { label: "Configuración", icon: Settings, onClick: () => navigate("/configuracion") },
+  ] as const;
+
   return (
     <div className={styles.home}>
-      {/* HERO / ACCIONES */}
+      {/* HEADER / HERO + ACCIONES (sin repetir) */}
       <section className={`${styles.widget} ${styles.hero}`}>
-        <div className={styles.actions}>
-          <button
-            onClick={() => navigate("/comuneros/nuevo")}
-            className={`${styles.btn} ${styles.primary}`}
-          >
-            <Plus size={18} />
-            Registrar
-          </button>
+        <div className={styles.heroLeft}>
+          <div className={styles.heroTitle}>ComunaVision</div>
+          <div className={styles.heroSub}>Panel operativo</div>
 
-          <button onClick={() => navigate("/comuneros")} className={styles.btn}>
-            <Users size={18} />
-            Comuneros
-          </button>
-
-          <button onClick={() => navigate("/estadisticas")} className={styles.btn}>
-            <BarChart3 size={18} />
-            Estadísticas
-          </button>
-
-          <button onClick={() => navigate("/configuracion")} className={styles.btn}>
-            <Settings size={18} />
-            Configuración
-          </button>
+          <div className={styles.actions}>
+            {quickActions.map((a) => {
+              const Icon = a.icon;
+              return (
+                <button
+                  key={a.label}
+                  onClick={a.onClick}
+                  className={`${styles.btn} ${a.primary ? styles.primary : ""}`}
+                  type="button"
+                >
+                  <Icon size={18} />
+                  {a.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        <div className={styles.meta}>
-          <div className={`${styles.status} ${statusClass}`}>
-            {token ? <CheckCircle size={16} /> : <XCircle size={16} />}
-            {token ? "Sesión activa" : "Sin sesión"}
+        <div className={styles.heroRight}>
+          <div className={styles.meta}>
+            <div className={`${styles.status} ${statusClass}`}>
+              {token ? <CheckCircle size={16} /> : <XCircle size={16} />}
+              {token ? "Sesión activa" : "Sin sesión"}
+            </div>
+
+            <div className={styles.pill}>
+              <Clock size={16} />
+              <span className="muted">{dateTimeLabel}</span>
+            </div>
+
+            <button
+              className={styles.refresh}
+              onClick={refresh}
+              aria-label="Actualizar"
+              title="Actualizar"
+              disabled={loading}
+              type="button"
+            >
+              <RefreshCw size={16} />
+            </button>
           </div>
 
-          <div className={styles.clockMini}>
-            <Clock size={16} />
-            <span className="muted">{clockLabel}</span>
-          </div>
-
-          <button
-            className={styles.refresh}
-            onClick={() => {
-              loadKpis();
-              loadWeather();
-            }}
-            aria-label="Sincronizar datos"
-          >
-            <RefreshCw size={16} />
-            Sync
-          </button>
+          {toast && (
+            <div
+              className={`${styles.toast} ${
+                toast.type === "success"
+                  ? styles.toastOk
+                  : toast.type === "error"
+                  ? styles.toastBad
+                  : styles.toastInfo
+              }`}
+              role="status"
+              aria-live="polite"
+            >
+              <span>{toast.msg}</span>
+            </div>
+          )}
         </div>
       </section>
 
-      {/* GRID INFERIOR */}
+      {/* GRID */}
       <section className={styles.grid}>
-        {/* RELOJ */}
-        <div className={styles.widget}>
-          <Clock size={28} className={styles.iconTop} />
-          <div className={styles.clockBig}>{now.toLocaleTimeString()}</div>
-          <div className={`${styles.clockSmall} muted`}>{now.toLocaleDateString()}</div>
+        {/* EXPORTACIONES (integrado en una sola barra) */}
+        <div className={`${styles.widget} ${styles.widgetWide}`}>
+          <div className={styles.widgetTop}>
+            <div className={styles.widgetTitle}>Exportaciones</div>
+
+            <div className={styles.exportBar}>
+              <div className={styles.segment}>
+                <button
+                  className={`${styles.segBtn} ${expFormat === "csv" ? styles.segActive : ""}`}
+                  onClick={() => setExpFormat("csv")}
+                  type="button"
+                  aria-pressed={expFormat === "csv"}
+                >
+                  <FileText size={16} />
+                  CSV
+                </button>
+
+                <button
+                  className={`${styles.segBtn} ${expFormat === "json" ? styles.segActive : ""}`}
+                  onClick={() => setExpFormat("json")}
+                  type="button"
+                  aria-pressed={expFormat === "json"}
+                >
+                  <Braces size={16} />
+                  JSON
+                </button>
+              </div>
+
+              <div className={styles.switchWrap} title="Incluir eliminados">
+                <span className={styles.switchLabel}>Incluir eliminados</span>
+
+                <button
+                  type="button"
+                  className={`${styles.switch} ${expIncludeDeleted ? styles.switchOn : ""}`}
+                  onClick={() => setExpIncludeDeleted((v) => !v)}
+                  role="switch"
+                  aria-checked={expIncludeDeleted}
+                  aria-label="Alternar incluir eliminados"
+                >
+                  <span className={styles.switchThumb} />
+                </button>
+              </div>
+
+              <button
+                className={`${styles.btn} ${styles.primary} ${styles.exportBtn}`}
+                onClick={doExport}
+                disabled={exporting}
+                type="button"
+                title="Descargar"
+              >
+                <Download size={18} />
+                {exporting ? "Exportando…" : "Descargar"}
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* CLIMA */}
+        {/* PERFIL / LINKS (solo botones, sin ExternalLink) */}
         <div className={styles.widget}>
-          <Thermometer size={28} className={styles.iconTop} />
-          <div className={styles.weatherMain}>
-            {temp !== null ? `${Math.round(temp)}°C` : "—"}
+          <div className={styles.widgetTop}>
+            <div className={styles.widgetTitle}>Jarek</div>
           </div>
-          <div className={styles.weatherSub}>
-            <MapPin size={14} />
-            <span className="muted">{city}</span>
-          </div>
-          <div className={styles.weatherSub}>
-            <Wind size={14} />
-            <span className="muted">{wind !== null ? `${wind} km/h` : "—"}</span>
+
+          <div className={styles.links}>
+            <a className={styles.linkBtn} href="https://jarekchallco.netlify.app/" target="_blank" rel="noreferrer">
+              <Globe size={18} />
+              Web
+            </a>
+
+            <a className={styles.linkBtn} href="https://github.com/CHALLCOJAREK" target="_blank" rel="noreferrer">
+              <Github size={18} />
+              GitHub
+            </a>
+
+            <a
+              className={styles.linkBtn}
+              href="https://www.linkedin.com/in/jarek-angelo-challco-juarez-70a029249/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <Linkedin size={18} />
+              LinkedIn
+            </a>
+
+            <a className={styles.linkBtn} href="https://www.instagram.com/jarek_challco21/" target="_blank" rel="noreferrer">
+              <Instagram size={18} />
+              Instagram
+            </a>
+
+            <a className={styles.linkBtn} href="https://www.facebook.com/jarek.challco.22" target="_blank" rel="noreferrer">
+              <Facebook size={18} />
+              Facebook
+            </a>
           </div>
         </div>
 
-        {/* KPIs */}
+        {/* ACCESO RÁPIDO (sin repetir: aquí es “vista” compacta) */}
         <div className={styles.widget}>
-          <Users size={28} className={styles.iconTop} />
-
-          <div className={styles.kpi}>
-            <span className={styles.kpiLeft}>
-              <Users size={14} />
-              <span className="muted">Activos</span>
-            </span>
-            <span className={styles.kpiValue}>{value(total)}</span>
+          <div className={styles.widgetTop}>
+            <div className={styles.widgetTitle}>Acceso rápido</div>
           </div>
 
-          <div className={styles.kpi}>
-            <span className={styles.kpiLeft}>
-              <UserPlus size={14} />
-              <span className="muted">Hoy</span>
-            </span>
-            <span className={styles.kpiValue}>{value(today)}</span>
-          </div>
+          <div className={styles.quickGrid}>
+            <button className={styles.quickBtn} onClick={() => navigate("/comuneros/nuevo")} type="button">
+              <Plus size={18} />
+              Nuevo
+            </button>
 
-          <div className={styles.kpi}>
-            <span className={styles.kpiLeft}>
-              <Trash2 size={14} />
-              <span className="muted">Eliminados</span>
-            </span>
-            <span className={styles.kpiValue}>{value(deleted)}</span>
+            <button className={styles.quickBtn} onClick={() => navigate("/comuneros")} type="button">
+              <LayoutGrid size={18} />
+              Listado
+            </button>
+
+            <button className={styles.quickBtn} onClick={() => navigate("/configuracion")} type="button">
+              <Settings size={18} />
+              Ajustes
+            </button>
           </div>
         </div>
       </section>

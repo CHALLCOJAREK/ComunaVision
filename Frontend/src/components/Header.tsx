@@ -4,7 +4,7 @@ import { useLocation } from "react-router-dom";
 function titleFromPath(path: string) {
   if (path === "/" || path.startsWith("/comuneros")) return "Comuneros";
   if (path.startsWith("/home")) return "Home";
-  if (path.startsWith("/estadisticas")) return "Estadísticas";
+
   if (path.startsWith("/configuracion")) return "Configuración";
   return "ComunaVision";
 }

@@ -1,54 +1,85 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Home, Users, BarChart3, Settings, LogOut } from "lucide-react";
+import { Home, Users, Settings2, LogOut } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { ReactComponent as Logo } from "../assets/logo-comunavision.svg";
+import logo from "../assets/logo-comunavision.svg";
 
 export default function Sidebar() {
   const { logout } = useAuth();
   const navigate = useNavigate();
 
+  const lockRef = useRef<number | null>(null);
+
+  // Mini siempre (auto)
+  useEffect(() => {
+    const shell = document.querySelector(".cv-shell");
+    if (!shell) return;
+    shell.classList.add("cv-shell-mini");
+    return () => shell.classList.remove("cv-shell-mini");
+  }, []);
+
+  const lockCollapse = () => {
+    // “corta” hover/focus para que colapse incluso si el mouse sigue encima
+    document.documentElement.classList.add("cv-sb-locked");
+
+    if (lockRef.current) window.clearTimeout(lockRef.current);
+    lockRef.current = window.setTimeout(() => {
+      document.documentElement.classList.remove("cv-sb-locked");
+      lockRef.current = null;
+    }, 450); // ajusta: 350–650ms va fino
+  };
+
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     `cv-link${isActive ? " active" : ""}`;
 
   const doLogout = () => {
+    lockCollapse();
     logout();
     navigate("/login", { replace: true });
   };
 
   return (
-    <aside className="cv-sidebar">
+    <aside className="cv-sidebar cv-mini cv-auto" onMouseLeave={lockCollapse}>
       <div className="cv-brand">
-        <Logo className="cv-logo" />
-        <div>
+        <img src={logo} alt="ComunaVision" className="cv-logo" />
+        <div className="cv-brandText">
           <h1>ComunaVision</h1>
-          <p>Empadronamiento moderno</p>
         </div>
       </div>
 
       <nav className="cv-nav">
-        <NavLink to="/home" className={linkClass}>
-          <Home size={18} /> Home
-        </NavLink>
+        <div className="cv-navMain">
+          <NavLink to="/home" className={linkClass} onClick={lockCollapse} title="Home">
+            <Home size={18} /> <span className="cv-label">Home</span>
+          </NavLink>
 
-        {/* ✅ antes era "/" y te mandaba a Home por el redirect */}
-        <NavLink to="/comuneros" className={linkClass}>
-          <Users size={18} /> Comuneros
-        </NavLink>
+          <NavLink to="/comuneros" className={linkClass} onClick={lockCollapse} title="Comuneros">
+            <Users size={18} /> <span className="cv-label">Comuneros</span>
+          </NavLink>
 
-        <NavLink to="/estadisticas" className={linkClass}>
-          <BarChart3 size={18} /> Estadísticas
-        </NavLink>
+          {/*
+          <NavLink to="/estadisticas" className={linkClass} onClick={lockCollapse} title="Estadísticas">
+            <BarChart3 size={18} /> <span className="cv-label">Estadísticas</span>
+          </NavLink>
+          */}
+        </div>
 
-        <NavLink to="/configuracion" className={linkClass}>
-          <Settings size={18} /> Configuración
-        </NavLink>
+        <div className="cv-navBottom">
+          <div className="hr" />
 
-        <div className="hr" />
+          <NavLink
+            to="/configuracion"
+            className={linkClass}
+            onClick={lockCollapse}
+            title="Configuración"
+          >
+            <Settings2 size={18} /> <span className="cv-label">Configuración</span>
+          </NavLink>
 
-        <button className="btn danger" onClick={doLogout} type="button">
-          <LogOut size={18} /> Salir
-        </button>
+          <button className="btn danger" onClick={doLogout} type="button" title="Salir">
+            <LogOut size={18} /> <span className="cv-label">Salir</span>
+          </button>
+        </div>
       </nav>
     </aside>
   );

@@ -1,0 +1,116 @@
+/* Scope-only: NO tokens nuevos, NO :root, NO hardcodes */
+
+.wrap{
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.toolbar{
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding-bottom: var(--sp-3);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.toolbarLeft{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.badge{
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.03);
+  box-shadow: var(--shadow1);
+  font-weight: 700;
+}
+
+.hint{
+  margin: 0;
+  opacity: .78;
+  font-size: 13.5px;
+}
+
+.toolbarRight{
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btnPrimary,
+.btnGhost{
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.10);
+  cursor: pointer;
+  transition: transform var(--t-fast) ease, background var(--t-fast) ease, border-color var(--t-fast) ease;
+  user-select: none;
+}
+
+.btnGhost{
+  background: rgba(255,255,255,0.02);
+  color: var(--text);
+}
+
+.btnGhost:hover{
+  transform: translateY(-1px);
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(110,231,255,0.18);
+}
+
+.btnPrimary{
+  background: rgba(110,231,255,0.10);
+  border-color: rgba(110,231,255,0.22);
+  color: var(--text);
+}
+
+.btnPrimary:hover{
+  transform: translateY(-1px);
+  background: rgba(110,231,255,0.14);
+  border-color: rgba(110,231,255,0.30);
+}
+
+.body{
+  min-height: 280px;
+}
+
+.empty{
+  border-radius: 18px;
+  padding: 18px;
+  border: 1px dashed rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.02);
+}
+
+.emptyTitle{
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.emptyText{
+  opacity: .78;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+@media (max-width: 720px){
+  .toolbar{
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .toolbarRight{
+    justify-content: flex-end;
+  }
+}

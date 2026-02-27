@@ -180,7 +180,7 @@ export default function ComunerosTable() {
             <Search size={18} />
             <input
               className="input"
-              placeholder="Buscar por nombre o documento…"
+              placeholder="Buscar"
               value={q}
               onChange={(e) => setQ(e.target.value)}
             />

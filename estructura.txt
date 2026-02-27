@@ -10510,6 +10510,8 @@
  ┃ 📂 public
  ┃  ┣ 📜 favicon.ico
  ┃  ┣ 📜 index.html
+ ┃  ┣ 📜 logo-comunavision.svg
+ ┃  ┣ 📜 logo-comunavision1.svg
  ┃  ┣ 📜 vite.svg
  ┃ 📂 src
  ┃  ┣ 📜 App.css
@@ -10523,9 +10525,15 @@
  ┃  ┃  ┣ 📜 DynamicForm.tsx
  ┃  ┃  ┣ 📜 Header.tsx
  ┃  ┃  ┣ 📜 Layout.tsx
+ ┃  ┃  ┣ 📜 Sidebar.module.css
  ┃  ┃  ┣ 📜 Sidebar.tsx
  ┃  ┃  ┃ 📂 Configuracion
+ ┃  ┃  ┃  ┣ 📜 CamposTab.module.css
+ ┃  ┃  ┃  ┣ 📜 CamposTab.tsx
  ┃  ┃  ┃  ┣ 📜 ComposForm.tsx
+ ┃  ┃  ┃  ┣ 📜 ConfiguracionTabs.module.css
+ ┃  ┃  ┃  ┣ 📜 LogsTab.tsx
+ ┃  ┃  ┃  ┣ 📜 SistemaTab.tsx
  ┃  ┃  ┃  ┣ 📜 Usuarios.tsx
  ┃  ┃  ┃ 📂 Estadisticas
  ┃  ┃  ┃  ┣ 📜 Charts.tsx
