@@ -126,7 +126,7 @@ export default function DynamicForm({ initial, onChange, hideTitle }: Props) {
 
   return (
     <div style={{ border: "1px solid rgba(0,0,0,.08)", padding: 12, borderRadius: 10 }}>
-      {!hideTitle && <h3 style={{ marginTop: 0, color: "white" }}>Datos dinámicos</h3>}
+      {!hideTitle && <h3 style={{ marginTop: 0, color: "white" }}></h3>}
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
         {campos.map((c) => {

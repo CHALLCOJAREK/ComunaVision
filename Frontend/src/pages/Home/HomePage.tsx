@@ -257,7 +257,7 @@ export default function Home() {
           </div>
 
           <div className={styles.links}>
-            <a className={styles.linkBtn} href="https://jarekchallco.netlify.app/" target="_blank" rel="noreferrer">
+            <a className={styles.linkBtn} href="https://j2-peru.com/" target="_blank" rel="noreferrer">
               <Globe size={18} />
               Web
             </a>
